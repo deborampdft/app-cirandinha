@@ -1,7 +1,9 @@
-import streamlit as st
+import hmac
+from datetime import datetime
+
 import pandas as pd
 import plotly.express as px
-from datetime import datetime
+import streamlit as st
 
 # ==============================
 # Configurações de Design e Constantes
@@ -31,6 +33,35 @@ st.set_page_config(
     layout="wide",
     initial_sidebar_state="collapsed"
 )
+
+# ==============================
+# Autenticação por Senha
+# ==============================
+
+def verificar_senha():
+    """Retorna True se o usuário digitou a senha correta."""
+
+    def senha_digitada():
+        if hmac.compare_digest(st.session_state["senha"], st.secrets["password"]):
+            st.session_state["senha_correta"] = True
+            del st.session_state["senha"]  # não guardar a senha na sessão
+        else:
+            st.session_state["senha_correta"] = False
+
+    if st.session_state.get("senha_correta", False):
+        return True
+
+    st.title("🔒 CRM Grupo Cirandinha")
+    st.text_input(
+        "Senha", type="password", on_change=senha_digitada, key="senha"
+    )
+    if st.session_state.get("senha_correta") is False:
+        st.error("Senha incorreta. Tente novamente.")
+    return False
+
+
+if not verificar_senha():
+    st.stop()
 
 st.markdown("""
 <style>
