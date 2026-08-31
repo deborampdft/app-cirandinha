@@ -1,4 +1,5 @@
 import hmac
+import os
 from datetime import datetime
 
 import pandas as pd
@@ -413,6 +414,47 @@ def main():
     # =========================================================
     with tab_cadastros:
         st.markdown("<h2 style='text-align:center;'>📊 Gestão de Cadastros</h2>", unsafe_allow_html=True)
+
+        with st.expander("📁 Gerenciar Planilha de Cadastros", expanded=False):
+            col_down, col_up = st.columns(2)
+
+            with col_down:
+                st.markdown("**⬇️ Baixar planilha atual**")
+                if os.path.exists(CADASTROS_PATH):
+                    with open(CADASTROS_PATH, "rb") as f:
+                        st.download_button(
+                            "Baixar cadastros.xlsx",
+                            data=f.read(),
+                            file_name="cadastros.xlsx",
+                            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                            key="download_cadastros"
+                        )
+                else:
+                    st.info("Nenhuma planilha encontrada para baixar.")
+
+            with col_up:
+                st.markdown("**⬆️ Atualizar planilha**")
+                uploaded_cadastros = st.file_uploader(
+                    "Envie o novo cadastros.xlsx",
+                    type=["xlsx"],
+                    key="upload_cadastros"
+                )
+                if uploaded_cadastros is not None:
+                    ja_processado = st.session_state.get("upload_cadastros_processado")
+                    id_upload = (uploaded_cadastros.name, uploaded_cadastros.size)
+                    if ja_processado != id_upload:
+                        try:
+                            # Valida se o arquivo é um Excel legível antes de substituir
+                            pd.read_excel(uploaded_cadastros, dtype=str)
+                            uploaded_cadastros.seek(0)
+                            with open(CADASTROS_PATH, "wb") as f:
+                                f.write(uploaded_cadastros.getbuffer())
+                            st.session_state["upload_cadastros_processado"] = id_upload
+                            st.session_state.pop("df_cadastros_raw", None)
+                            st.success("✅ Planilha atualizada com sucesso!")
+                            st.rerun()
+                        except Exception as e:
+                            st.error(f"Arquivo inválido: não foi possível ler como Excel. ({e})")
 
         try:
             df_cadastros_raw = obter_cadastros()
