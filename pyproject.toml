@@ -5,7 +5,7 @@ description = "Análise Grupo Cirandinha Dashboard with Streamlit"
 authors = [
     {name = "Debora"}
 ]
-requires-python = ">=3.9"
+requires-python = ">=3.10"
 dependencies = [
     "streamlit>=1.29.0",
     "pandas>=2.1.4",
@@ -33,7 +33,7 @@ packages = ["."]
 
 [tool.black]
 line-length = 88
-target-version = ['py39']
+target-version = ['py310']
 
 [tool.flake8]
 max-line-length = 88
